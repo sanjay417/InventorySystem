@@ -1,0 +1,139 @@
+version: "3.7"
+services:
+  zookeeper:
+    image: wurstmeister/zookeeper
+    ports:
+      - "2181:2181"
+    networks:
+      - webnet
+  kafka:
+    image : wurstmeister/kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: kafka
+      KAFKA_ADVERTISED_PORT: "9092"
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+    networks:
+      - webnet
+  redis:
+    image: redis:5.0.4
+    ports:
+      - "6379:6379"
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+    networks:
+      - webnet
+  mongodb:
+    image: mongo
+    ports:
+      - "27017:27017"
+    networks:
+      - webnet
+  gateway:
+    image: arunhiremath92/arunhiremath92:mocha-backend
+    ports:
+      - "5000:5000"
+    depends_on:
+      - redis
+      - mongodb
+    deploy:
+      replicas: 1
+    networks:
+      - webnet
+    environment:
+      - FRONT_END_HOST=http://frontend:3000
+      - AUTHENTICATION_END=http://authserver:3001
+      - NOTIFICATION_HOST=http://notification:3002/websocket
+      - TRANSACTION_END=http://transaction:3003
+      - INVENTORY_END=http://inventory:3004
+  frontend:
+    image: arunhiremath92/arunhiremath92:mocha-frontend
+    ports:
+      - "3000:3000"
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    networks:
+      - webnet
+  notification:
+    image: arunhiremath92/arunhiremath92:mocha-notification
+    depends_on:
+      - redis
+    ports:
+      - "3002:3002"
+    deploy:
+      replicas: 3
+      restart_policy:
+        condition: on-failure
+    networks:
+      - webnet
+    environment:
+      - REDIS_HOST=redis
+  authserver:
+    image: arunhiremath92/arunhiremath92:mocha-authserver
+    depends_on:
+      - redis
+      - mongodb
+    ports:
+      - "3001:3001"
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    networks:
+      - webnet
+    environment:
+      - REDIS_HOST=redis
+      - MONGO_HOST=mongodb://mongodb:27017
+  inventory:
+    image: arunhiremath92/arunhiremath92:mocha-inventory
+    depends_on:
+      - redis
+      - mongodb
+    ports:
+      - "3004:3004"
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    networks:
+      - webnet
+    environment:
+      - REDIS_HOST=redis
+      - MONGO_HOST=mongodb://mongodb:27017
+  transaction:
+    image: arunhiremath92/arunhiremath92:mocha-transaction
+    depends_on:
+      - redis
+      - mongodb
+    ports:
+      - "3003:3003"
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    networks:
+      - webnet
+    environment:
+      - REDIS_HOST=redis
+      - MONGO_HOST=mongodb://mongodb:27017
+  recipt:
+    image: arunhiremath92/arunhiremath92:mocha-recipt
+    depends_on:
+      - redis
+      - mongodb
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    networks:
+      - webnet
+    environment:
+      - REDIS_HOST=redis
+      - MONGO_HOST=mongodb://mongodb:27017
+      - PASSWD="CSc667/867"
+networks:
+  webnet:

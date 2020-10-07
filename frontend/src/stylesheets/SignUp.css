@@ -1,0 +1,15 @@
+form {
+    padding: 3em;
+    margin: 2em;
+    background: rgba(203, 211, 214, 0.651);
+    border-radius: 25px;
+}
+.signupComponent {
+    margin: 2em;
+}
+input {
+    width: 21em;
+}
+.field {
+    margin: 5px;
+}

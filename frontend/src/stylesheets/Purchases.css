@@ -1,0 +1,17 @@
+.purchaseComponent {
+    margin: 2em;
+}
+.title {
+    margin: 1em;
+}
+.contents {
+    border-radius: 10px;
+    border-style: groove;
+}
+.dates {
+    margin: 2em 2em;
+    padding-bottom: 5px;
+}
+.items {
+    margin: 0 2em;
+}
